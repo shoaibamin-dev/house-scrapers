@@ -1,0 +1,2 @@
+var btns = document.querySelectorAll(".process-kill")
+btns.forEach(btn => btn.click())
