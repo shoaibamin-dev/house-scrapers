@@ -60,14 +60,7 @@ def get_database():
 
     return client['property-scrapers-aws']
 
-def import_mongo():
 
-    for item in items:
-        key = {'url':item["url"]}
-        collection_name.replace_one(key,item,upsert=True);
-
-
-    print("MongoDB import completed")
 
 
 def scrapehouses():
@@ -202,7 +195,8 @@ def scrapehouses():
         driver.quit()
         print("finally")
         if items:
-            import_mongo()
+            from hmongo import import_mongo 
+            import_mongo(collection_name, items)
 
 
 

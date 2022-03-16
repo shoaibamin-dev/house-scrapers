@@ -11,6 +11,7 @@ import sys
 from datetime import datetime
 import json
 
+
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--headless")
@@ -57,15 +58,6 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
 
     return client['property-scrapers-aws']
-
-def import_mongo():
-
-
-    for item in items:
-        key = {'url':item["url"]}
-        collection_name.replace_one(key,item,upsert=True);
-
-    print("MongoDB import completed")
 
 
 
@@ -179,7 +171,8 @@ def scrapehouses():
         driver.quit()
         print("finally")
         if items:
-            import_mongo()
+            from hmongo import import_mongo 
+            import_mongo(collection_name, items)
 
 
 
