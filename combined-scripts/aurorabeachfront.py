@@ -80,7 +80,7 @@ def scrapehouses():
 
                 print(counter, "of",len(links))
                 counter+=1
-
+    
                 driver.get(link)
 
                 loader = WebDriverWait(driver, 10).until(

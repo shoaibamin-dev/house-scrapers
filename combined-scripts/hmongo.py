@@ -26,8 +26,8 @@ def import_mongo(collection_name, items):
             
             for d in diff:
                 l = list(d)
-                message_html += "\n     <p>The attribute <b>"+l[0]+"</b> is changed from <b>"+l[1]+"</b> to <b>"+new[l[0]]+"</b>.</p>"
-                message += "\n     The attribute "+l[0]+" is changed from "+l[1]+" to "+new[l[0]]+"."
+                message_html += "\n     <p>The attribute <b>"+l[0]+"</b> is changed ---FROM--- <b>"+l[1]+"</b> ---TO--- <b>"+new[l[0]]+"</b>.</p>"
+                message += "\n     The attribute "+l[0]+" is changed ---FROM--- "+l[1]+" ---TO--- "+new[l[0]]+"."
         
         
             message_template = """\
@@ -41,7 +41,7 @@ def import_mongo(collection_name, items):
                                 """
             send(message, message_template)
 
-        print(len(diff), diff)
+        # print(len(diff), diff)
         
       
     print("MongoDB import completed")
