@@ -39,7 +39,79 @@ links = []
 # links = ['https://property-nicaragua.com/listing/beachfront-masterpiece/', 'https://property-nicaragua.com/listing/casa-sodi-rancho-santana/', 'https://property-nicaragua.com/listing/oceanfront-surf-masterpiece/']
 # links.append("https://trinityrealestatenicaragua.com/estate_property/beach-front-5-bedrooms-house-casa-serena-in-san-juan-del-sur-rivas-nicaragua/")
 
-def scrapehouses():
+dbname = None
+collection_name = None
+
+# links.append("https://trinityrealestatenicaragua.com/estate_property/beach-front-5-bedrooms-house-casa-serena-in-san-juan-del-sur-rivas-nicaragua/")
+
+
+house_types = [
+        {
+        "url": "https://property-nicaragua.com/property-type/homes-villas/",
+        "type": "home-villas"
+        },
+         {
+        "url": "https://property-nicaragua.com/property-type/land/",
+        "type": "land"
+        },
+        {
+        "url": "https://property-nicaragua.com/property-type/condominiums/",
+        "type": "condo"
+        },
+        {
+        "url": "https://property-nicaragua.com/property-type/oceanfront/",
+        "type": "oceanfront"
+        },
+        {
+        "url": "https://property-nicaragua.com/property-type/surf-real-estate/",
+        "type": "surf"
+        },
+        {
+        "url": "https://property-nicaragua.com/property-type/commercial/",
+        "type": "commercial"
+        },
+        {
+        "url": "https://property-nicaragua.com/property-type/farms-acreages/",
+        "type": "farms-acreages"
+        }
+    ]
+
+
+def get_database():
+    from pymongo import MongoClient
+    CONNECTION_STRING = 'mongodb+srv://minhal:minhal123@cluster0.jkar1.mongodb.net/houses-scraper?retryWrites=true&w=majority'
+    client = MongoClient(CONNECTION_STRING)
+
+    return client['houses_sites']
+
+
+def get_all_types(type_counter = 0):
+
+
+    if type_counter >= len(house_types): scrapehouses()
+
+    
+    try:   
+        get_all_links(house_types[type_counter]["url"], house_types[type_counter]["type"])
+        get_all_types(type_counter+1)
+
+    except Exception as e:
+        print("Error:",e)
+        exception_type, exception_object, exception_traceback = sys.exc_info()
+        filename = exception_traceback.tb_frame.f_code.co_filename
+        line_number = exception_traceback.tb_lineno
+
+        print("Exception type: ", exception_type)
+        print("File name: ", filename)
+        print("Line number: ", line_number)
+       
+    finally:
+        pass
+
+ 
+
+
+def scrapehouses(type):
     counter = 1
 
     try:
@@ -142,14 +214,12 @@ def scrapehouses():
                 "area":lcl_area,
                 "type":lcl_type,
                 "status":lcl_status,
-                "created_at":str(datetime.now())
+                "created_at":str(datetime.now()),
+                "item": item
             }
 
             items.append(item)
-
-        with open('data.json', 'w') as outfile:
-            json_items = json.dumps(items, indent = 4)
-            outfile.write(json_items)
+            print("item", item)
 
     except Exception as e:
         print("Error:",e)
@@ -169,12 +239,13 @@ def scrapehouses():
 
 
 
-url = "https://property-nicaragua.com/?s=&property_id=&min_sqft=&property_status=0&min_price=0&property_type=houses&min_beds=0&exclusives=3&max_price=0&property_location=0&min_baths=0&s-old=property_search&sort_by=price&sort_dir=DESC&limit=&beaches=0&surfs=0&developments=0&areas=0"
-driver.get(url)
+# url = "https://property-nicaragua.com/?s=&property_id=&min_sqft=&property_status=0&min_price=0&property_type=houses&min_beds=0&exclusives=3&max_price=0&property_location=0&min_baths=0&s-old=property_search&sort_by=price&sort_dir=DESC&limit=&beaches=0&surfs=0&developments=0&areas=0"
 
-def get_all_links():
+def get_all_links(url, type):
 
     try: 
+        
+        driver.get(url)
 
         loader = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "listings"))
@@ -193,7 +264,7 @@ def get_all_links():
             links.append(a)
 
         # Test
-        scrapehouses()
+        scrapehouses(type)
         return
         # Test
         
@@ -216,12 +287,18 @@ def get_all_links():
         print("Exception type: ", exception_type)
         print("File name: ", filename)
         print("Line number: ", line_number)
-        scrapehouses()
+        scrapehouses(type)
 
        
     finally:
         pass
 
-
-get_all_links()
+if __name__ == "__main__": 
+    print('name')   
+    dbname = get_database()
+    collection_name = dbname["nicaliferealty"]
+    print('get_all_links')
+    get_all_types()   
+    # scrapehouses('house')
+# get_all_links()
 # scrapehouses()
