@@ -206,5 +206,11 @@ def get_all_links(page_counter=1):
         # scrapehouses()
         # print(links)
        
-get_all_links()
+if __name__ == "__main__": 
+    print('name')   
+    dbname = get_database()
+    collection_name = dbname["emeraldinvestmentnica"]
+    print('get_all_links')
+    get_all_types()   
+    # get_all_links()
 # scrapehouses()

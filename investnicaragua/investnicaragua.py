@@ -35,9 +35,75 @@ page_counter=1
 
 items = []
 links = []
+
+dbname = None
+collection_name = None
+
 # links.append("https://trinityrealestatenicaragua.com/estate_property/beach-front-5-bedrooms-house-casa-serena-in-san-juan-del-sur-rivas-nicaragua/")
 
-def scrapehouses():
+
+house_types = [
+        {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=acreage",
+        "type": "acreage"
+        },
+         {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=apartments",
+        "type": "apartments"
+        },
+        {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=commercial",
+        "type": "commercial"
+        },
+        {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=developments",
+        "type": "developments"
+        },
+        {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=houses",
+        "type": "houses"
+        },
+        {
+        "url": "https://www.investnicaragua.com/search-properties/?_sft_property_type=land",
+        "type": "land"
+        }
+    ]
+
+current_type = "house"
+     
+def get_all_types(type_counter = 0):
+
+    global current_type
+
+    if type_counter >= len(house_types): scrapehouses()
+
+    try:   
+        get_all_links(house_types[type_counter]["url"], house_types[type_counter]["type"])
+        get_all_types(type_counter+1)
+
+    except Exception as e:
+        print("Error:",e)
+        exception_type, exception_object, exception_traceback = sys.exc_info()
+        filename = exception_traceback.tb_frame.f_code.co_filename
+        line_number = exception_traceback.tb_lineno
+
+        print("Exception type: ", exception_type)
+        print("File name: ", filename)
+        print("Line number: ", line_number)
+       
+    finally:
+        pass
+
+
+
+def get_database():
+    from pymongo import MongoClient
+    CONNECTION_STRING = 'mongodb+srv://minhal:minhal123@cluster0.jkar1.mongodb.net/houses-scraper?retryWrites=true&w=majority'
+    client = MongoClient(CONNECTION_STRING)
+
+    return client['houses_sites']
+
+def scrapehouses(type):
     counter = 1
 
     try:
@@ -120,14 +186,20 @@ def scrapehouses():
                 "area":lcl_area,
                 
                 "sold":"N",
-                "created_at":str(datetime.now())
+                "created_at":str(datetime.now()),
+                "house_kind":type
+
             }
 
-            items.append(item)
+            print(item, "item")
 
-        with open('data.json', 'w') as outfile:
-            json_items = json.dumps(items, indent = 4)
-            outfile.write(json_items)
+            collection_name.insert_one(item)
+
+            
+
+        # with open('data.json', 'w') as outfile:
+        #     json_items = json.dumps(items, indent = 4)
+        #     outfile.write(json_items)
 
     except Exception as e:
         print("Error:",e)
@@ -142,55 +214,45 @@ def scrapehouses():
 
     
 
+def get_all_links(url,type,page_counter=1):
 
-        
-
-
-
-
-def get_all_links(page_counter):
-
-    url = f"https://www.investnicaragua.com/properties/page/{page_counter}"
-    driver.get(url)
+    url1 = f"{url}&sf_paged={page_counter}"
+    driver.get(url1)
    
 
 
     try: 
-
-        loader = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "archive-property-item"))
-        )
        
         main = driver.find_elements(By.CLASS_NAME, 'archive-property-item')
         
         print(len(main), "length of main")
 
-        if len(main) == 0: driver.quit()
+        if len(main) == 0: return scrapehouses(type)
 
         for x in main:
             
             site_element = x.find_element(By.TAG_NAME, 'a')
-        
+
             a = site_element.get_attribute('href')
+            # print(a, url)
             links.append(a)
         
         # Test
-        scrapehouses()
-        return
+        # scrapehouses()
+        # return
         # Test
 
-        get_all_links(page_counter + 1)
+        get_all_links(url, type, page_counter + 1)
 
     except Exception as e:
         print("Error:",e)
-        exception_type, exception_object, exception_traceback = sys.exc_info()
+        exception_type, exception_object, exception_traceback, = sys.exc_info()
         filename = exception_traceback.tb_frame.f_code.co_filename
         line_number = exception_traceback.tb_lineno
-
+        
         print("Exception type: ", exception_type)
         print("File name: ", filename)
         print("Line number: ", line_number)
-        scrapehouses()
       
 
     finally:
@@ -199,4 +261,11 @@ def get_all_links(page_counter):
         # scrapehouses()
         # driver.quit()
         
-get_all_links(1)
+
+if __name__ == "__main__": 
+    print('name')   
+    dbname = get_database()
+    collection_name = dbname["investnicaragua"]
+    print('get_all_links')
+    get_all_types()   
+    # get_all_links(1)    

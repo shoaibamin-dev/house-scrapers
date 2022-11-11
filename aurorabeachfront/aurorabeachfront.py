@@ -48,18 +48,14 @@ collection_name = None
 
 def get_database():
     from pymongo import MongoClient
-
     CONNECTION_STRING = 'mongodb+srv://minhal:minhal123@cluster0.jkar1.mongodb.net/houses-scraper?retryWrites=true&w=majority'
-
-
-    from pymongo import MongoClient
     client = MongoClient(CONNECTION_STRING)
 
     return client['houses_sites']
     
 
 
-def scrapehouses():
+def scrapehouses(type):
     global dbname
     global collection_name
     counter = 1
@@ -143,9 +139,11 @@ def scrapehouses():
                     "type":lcl_type.strip(),
                     "status":lcl_sold.strip(),
                     "created_at":str(datetime.now()),
-                    "url":link
+                    "url":link,
+                    "house_kind":type
                 }
 
+                print(item, "item")
                 collection_name.insert_one(item)
                 
             except:
@@ -169,18 +167,99 @@ def scrapehouses():
         driver.quit()
 
     
+house_types = [
+        {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/houses.php",
+        "type": "house"
+        },
+         {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/lots.php",
+        "type": "lots"
+        },
+        {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/condos.php",
+        "type": "condos"
+        },
+        {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/surf.php",
+        "type": "surf"
+        },
+        {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/beachfront.php",
+        "type": "beachfront"
+        },
+        {
+        "url": "https://aurorabeachfront.com/nicaraguarealestate/commercial.php",
+        "type": "commercial"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/acreages.php",
+        "type": "acreages"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/sanjuandelsur.php",
+        "type": "sanjuandelsur"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/exclusives.php",
+        "type": "exclusives"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/featured.php",
+        "type": "featured"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/green.php",
+        "type": "green"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/golf.php",
+        "type": "golf"
+        },
+         {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/developments.php",
+        "type": "developments"
+        },
+        {
+        "url":  "https://aurorabeachfront.com/nicaraguarealestate/newest.php",
+        "type": "newest"
+        }
+    ]
+
+current_type = "house"
+     
+def get_all_types(type_counter = 0):
+
+    global current_type
+
+    if type_counter >= len(house_types): return
+
+    current_type = house_types[type_counter]["type"]
+
+    print(current_type, "current_type")
+
+    try:   
+        get_all_links(house_types[type_counter]["url"], house_types[type_counter]["type"])
+        get_all_types(type_counter+1)
+
+    except Exception as e:
+        print("Error:",e)
+        exception_type, exception_object, exception_traceback = sys.exc_info()
+        filename = exception_traceback.tb_frame.f_code.co_filename
+        line_number = exception_traceback.tb_lineno
+
+        print("Exception type: ", exception_type)
+        print("File name: ", filename)
+        print("Line number: ", line_number)
+       
+    finally:
+        pass
 
 
-        
 
-
-
-
-
-def get_all_links(page_counter=1):
-
+def get_all_links(url,type,page_counter=1):
     
-    url = f"https://aurorabeachfront.com/nicaraguarealestate/houses.php?page={page_counter}"
+    print(url, 'url')
     driver.get(url)
 
     try: 
@@ -221,15 +300,18 @@ def get_all_links(page_counter=1):
         
         print(links, "links")
 
-        scrapehouses()
+        scrapehouses(type)
         # driver.quit()
        
     finally:
         pass
        
 
-if __name__ == "__main__":    
+if __name__ == "__main__": 
+    print('name')   
     dbname = get_database()
     collection_name = dbname["aurorabeachfront"]
-    get_all_links()
+    print('get_all_links')
+    get_all_types()   
+    # get_all_links()
 # scrapehouses()
